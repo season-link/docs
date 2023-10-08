@@ -67,11 +67,11 @@ erDiagram
     CANDIDATE ||--o{ EXPERIENCE : has
     CANDIDATE ||--o{ REFERENCE : has
     CANDIDATE ||--o{ APPLICATION : has
-    CANDIDATE ||--o{ COUNTRY : has
-    REFERENCE ||--o{ COUNTRY : has
+    CANDIDATE }o--|| COUNTRY : has
+    REFERENCE }o--|| COUNTRY : has
     APPLICATION ||--o{ MESSAGE : has
     JOB_OFFER ||--o{ APPLICATION : has
-    JOB_OFFER ||--o{ COMPANY : has
+    JOB_OFFER }o--|| COMPANY : has
     JOB_OFFER }o--o{ ADVANTAGE: has
     JOB ||--o{ JOB_OFFER : has
     JOB_CATEGORY ||--o{ JOB : has
