@@ -16,10 +16,10 @@ Season link is job board specifically made for seasonal employment. It puts in t
 - As a candidate I want to be able to view all job offers
 - As a candidate I want to be able to see the a review of companies on a job offer
 - As a candidate I want to be able to apply to a job offer
-- As a candidate I want to be able to chat with an employer and use an external
-- As a candidate I want to stop applying to a job offer
+- As a candidate I want to be able to chat with an employer and use an external video-call service
+- As a candidate I want to remove my application to a job offer
 - As a candidate I want to be able to review a company I have worked for
-- As a candidate I want to receive notifications when I receive a message (including refusal/granting of a job offer)
+- As a candidate I want to be notified upon receiving a message (including refusal/granting of a job offer)
 - As a candidate I want to be able to view the ratings I have received from my past employers
 - As a candidate I want to be able to add a previous experience I've had on season link to my experiences
 
@@ -30,7 +30,7 @@ Season link is job board specifically made for seasonal employment. It puts in t
 
 ## Scope
 
-The admin doesn't have an interface, account deletion sends a mail to an admin containing the user's info with a link to delete it.
+The admin doesn't have an interface, the account deletion process sends a mail to an admin containing the user's info with a link to delete it.
 
 The recruiters have their own application and we do not manage it. We suppose authentication and authorization concerning them is done through that app.
 
@@ -43,7 +43,7 @@ This includes:
 - refusing / granting applicants to their job offers
 - creating job offers
 
-Hence, mock API will be created to mimic expected behavior.
+Hence, a mock API will be created to mimic expected behavior.
 
 ## Technical Overview
 
