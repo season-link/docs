@@ -53,7 +53,7 @@ We aim to use keycloak and OIDC for authentication instead of Spring Security. K
 
 ### Wireframe
 
-The wireframe is a excalidraw file, you can download it <a id="raw-url" href="https://raw.githubusercontent.com/season-link/docs/main/assets/2023-10-02-18h13.excalidraw">here</a>.
+The wireframe is a excalidraw file, you can download it <a id="raw-url" href="https://raw.githubusercontent.com/season-link/docs/main/assets/files/2023-10-02-18h13.excalidraw">here</a>.
 
 To view it, go to [Excalidraw](https://excalidraw.com/) and import the file you've downloaded.
 
@@ -88,7 +88,7 @@ erDiagram
       string phone_country_id fk
       string phone_number
       string adress
-      int gender 
+      int gender
 
       boolean is_available
       date available_from
@@ -175,10 +175,45 @@ erDiagram
       string iso3
       string phonecode
       string currency_name
-      string currency_symbol      
+      string currency_symbol
     }
 ```
 
 Notes:
 
 - Companies do not hold geographical information, it is the job offer that does.
+
+### Microservices architecture
+
+![Microservices architecture](./assets/images/microservices-architecture.png)
+
+The gateway is the only entry point to the application. It is responsible for routing requests to the right microservice.
+
+The microservices are:
+
+- **Profile**: responsible for managing candidate profiles
+- **Company**: responsible for managing company profiles (Not managed by us so we mock it)
+- **Job**: responsible for handling jobs and job categories (Not managed by us so we mock it)
+- **Job Offer**: responsible for handling job offers (server push, creation, deletion, etc.)
+- **Application**: responsible for handling applications to job offers
+- **Rating**: responsible for handling ratings for both candidates and companies
+- **Messagery**: responsible for handling chats between candidates and companies (companies are not managed by us so we mock a behavior a company would have)
+- **Notification**: responsible for handling notifications
+
+Authentication and authorization is handled by keycloak, we will call it **Identity Federation**.
+
+### Database
+
+Each microservice has its own logical database. They will be PostgreSQL databases.
+
+### Inter-microservices communication
+
+Communication is handled through REST APIs. For a first version, it will be synchronous. This has the advantage of being simple to implement and debug. However, it has the disadvantage of being slow and harder to scale. Service discovery will be not be handled by the gateway but by existing DNS infrastructure (e.g. Kubernetes).
+
+The notification center will however, use a message broker, which is asynchronous communication. It will receive messages from other services and process them.
+
+### Deployment
+
+For a first version, we will use docker-compose to deploy the application. This has the advantage of being simple to deploy and debug. However, it has the disadvantage of being hard to scale and not being production ready. On top of that there is no service discovery.
+
+For a second version, we will use Kubernetes to deploy the application. This has the advantage of being production ready and scalable.
