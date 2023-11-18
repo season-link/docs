@@ -47,10 +47,6 @@ Hence, mock API will be created to mimic expected behavior.
 
 ## Technical Overview
 
-### Authentication
-
-We aim to use keycloak and OIDC for authentication instead of Spring Security. Keycloak is already compliant and provides a lot of features out of the box and is easy to configure.
-
 ### Wireframe
 
 The wireframe is a excalidraw file, you can download it <a id="raw-url" href="https://raw.githubusercontent.com/season-link/docs/main/assets/files/2023-10-02-18h13.excalidraw">here</a>.
@@ -189,28 +185,99 @@ Notes:
 
 The gateway is the only entry point to the application. It is responsible for routing requests to the right microservice.
 
+The strategy chosen to cut the application into microservices is to cut it by domain.
+
 The microservices are:
 
 - **Profile**: responsible for managing candidate profiles
 - **Company**: responsible for managing company profiles (Not managed by us so we mock it)
 - **Job**: responsible for handling jobs and job categories (Not managed by us so we mock it)
-- **Job Offer**: responsible for handling job offers (server push, creation, deletion, etc.)
-- **Application**: responsible for handling applications to job offers
+- **Job Offer**: responsible for handling job offers and applications (server push, creation, deletion, etc.)
 - **Rating**: responsible for handling ratings for both candidates and companies
 - **Messagery**: responsible for handling chats between candidates and companies (companies are not managed by us so we mock a behavior a company would have)
-- **Notification**: responsible for handling notifications
+- **Notification**: responsible for handling notifications, this includes notifications for messages, pushed job offers, etc.
+- **Recommendation**: responsible for handling recommendations for job offers. It replicates the database of the job offer microservice in a graph database and uses it to recommend job offers to candidates.
 
 Authentication and authorization is handled by keycloak, we will call it **Identity Federation**.
 
+### Authentication
+
+Authentication is handled by keycloak. It is an open source identity and access management solution. It is compliant with OpenID Connect (OIDC) and OAuth 2.0.
+
+It is used to authenticate users and manage their permissions.
+
+#### Connection flow
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant A as App
+    participant K as Keycloak
+    participant G as Gateway
+
+    U->>A: Click login link
+    A->>A: Generate Code Verifier and Code Challenge
+    A->>K: Authorization Request with Code Challenge
+    K->>U: Redirect to Keycloak Login Page
+    U->>K: Authenticate
+    K->>A: Authorization Code
+    A->>K: Token Request with Authorization Code + Code Verifier
+    K->>K: Verify Code Verifier
+    K->>A: Access Token + Refresh Token
+    A->>G: Request user data with Access Token
+    G->>A: User data
+```
+
+The tokens are then stored in the secure storage of the phone. The refresh token is used to get a new access token when the current one expires or is invalid.
+
+#### Refresh flow
+
+```mermaid
+sequenceDiagram
+    participant A as App
+    participant K as Keycloak
+
+    A->>K: Refresh Token
+    K->>K: Verify Refresh Token
+    K->>A: Access Token + Refresh Token
+```
+
+#### Logout flow
+
+```mermaid
+sequenceDiagram
+    participant A as App
+    participant K as Keycloak
+
+    A->>K: Logout Request
+    K->>K: Invalidate Session
+```
+
+#### Inter-microservices authentication
+
+Since the microservices will not be exposed and that the gateway is the only entry point to the application, services will be able to trust each other.
+
+In the future, for increased security, we might consider using a service mesh.
+
 ### Database
 
-Each microservice has its own logical database. They will be PostgreSQL databases.
+Each microservice has its own physical database. They will be PostgreSQL databases.
+
+The database of the job offer microservice will be replicated in a graph database for the recommendation microservice.
 
 ### Inter-microservices communication
 
 Communication is handled through REST APIs. For a first version, it will be synchronous. This has the advantage of being simple to implement and debug. However, it has the disadvantage of being slow and harder to scale. Service discovery will be not be handled by the gateway but by existing DNS infrastructure (e.g. Kubernetes).
 
-The notification center will however, use a message broker, which is asynchronous communication. It will receive messages from other services and process them.
+Choosing to use HTTP for communication has the advantage of being simple to implement and debug. However, it has the disadvantage of being slow because of serialization, deserialization and the fact that it is synchronous. This causes the application to be harder to scale, and some requests to timeout.
+
+Errors might also cause the application to be in an inconsistent state. For example, if the job offer microservice fails to create a job offer, the application will be in an inconsistent state because the job offer will be created in the database but the application will not be created. We will have to implement a compensation mechanism to handle this and rollback the changes. Retry mechanisms are also needed to handle temporary failures.
+
+The notification center and recommendations will however, use a message broker, which is asynchronous communication. It will receive messages from other services and process them.
+
+Asynchronous communication has the advantage of being fast and scalable. However, it has the disadvantage of being hard to debug and implement.
+
+Ideally, we would use a message broker for all communication. However, this would require a lot of work and we do not have the time to do it. This is called an event-driven architecture.
 
 ### Deployment
 
