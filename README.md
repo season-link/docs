@@ -81,7 +81,6 @@ erDiagram
       string description
 
       string email
-      string phone_country_id fk
       string phone_number
       string adress
       int gender
